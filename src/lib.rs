@@ -104,8 +104,20 @@ impl Plugin for Pan {
                     ui.vertical_centered(|ui| {
                         ui.heading(egui::RichText::new("Pan").underline());
                         ui.add(
-                            widgets::ParamSlider::for_param(&params.pan, setter).with_width(200.0),
+                            widgets::ParamSlider::for_param(&params.pan, setter)
+                                .with_width(280.0)
+                                .without_value(),
                         );
+                        // Create a button to set params.pan to 0.0
+                        if ui
+                            .add(
+                                egui::widgets::Button::new("Set to 0.0")
+                                    .min_size(egui::Vec2::splat(40.0)),
+                            )
+                            .clicked()
+                        {
+                            setter.set_parameter(&params.pan, 0.0);
+                        }
                     });
                 });
             },
