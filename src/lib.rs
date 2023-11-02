@@ -127,20 +127,23 @@ impl Plugin for Pan {
         _aux: &mut AuxiliaryBuffers,
         _context: &mut impl ProcessContext<Self>,
     ) -> ProcessStatus {
-        for mut channel_samples in buffer.iter_samples() {
-            let pan = self.params.pan.smoothed.next();
+        // Check the number of channels in the buffer
+        if buffer.channels() == 2 {
+            for mut channel_samples in buffer.iter_samples() {
+                let pan = self.params.pan.smoothed.next();
 
-            // Calculate gains for left and right channels based on pan value
-            let left_gain = (1.0 - pan) / 2.0;
-            let right_gain = (1.0 + pan) / 2.0;
+                // Calculate gains for left and right channels based on pan value
+                let left_gain = (1.0 - pan) / 2.0;
+                let right_gain = (1.0 + pan) / 2.0;
 
-            // Apply the pan by adjusting the gain for each sample
-            for (sample0, sample1) in channel_samples
-                .iter_mut()
-                .zip(channel_samples.iter_mut().skip(1))
-            {
-                *sample0 = *sample0 * left_gain; // Adjust gain for the left channel
-                *sample1 = *sample1 * right_gain; // Adjust gain for the right channel
+                // Apply the pan by adjusting the gain for each sample
+                for (sample0, sample1) in channel_samples
+                    .iter_mut()
+                    .zip(channel_samples.iter_mut().skip(1))
+                {
+                    *sample0 = *sample0 * left_gain; // Adjust gain for the left channel
+                    *sample1 = *sample1 * right_gain; // Adjust gain for the right channel
+                }
             }
         }
 
