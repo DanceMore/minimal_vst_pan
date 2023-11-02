@@ -21,11 +21,17 @@ pub(crate) fn default_state() -> Arc<ViziaState> {
     ViziaState::new(|| (200, 150))
 }
 
+static THEME: &'static str = include_str!("../assets/theme.css");
+static WIDGETS: &'static str = include_str!("../assets/widgets.css");
+
 pub(crate) fn create(
     params: Arc<PanParams>,
     editor_state: Arc<ViziaState>,
 ) -> Option<Box<dyn Editor>> {
-    create_vizia_editor(editor_state, ViziaTheming::Custom, move |cx, _| {
+    create_vizia_editor(editor_state, ViziaTheming::Builtin, move |cx, _| {
+        let _ = cx.add_theme(THEME);
+        let _ = cx.add_theme(WIDGETS);
+        nih_plug_vizia::vizia_assets::register_roboto(cx);
         assets::register_noto_sans_light(cx);
         assets::register_noto_sans_thin(cx);
 
