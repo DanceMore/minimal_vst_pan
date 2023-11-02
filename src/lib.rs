@@ -1,8 +1,9 @@
 use atomic_float::AtomicF32;
-use egui::{Color32, Visuals};
 use nih_plug::prelude::*;
-use nih_plug_egui::{create_egui_editor, egui, widgets, EguiState};
+use nih_plug_vizia::ViziaState;
 use std::sync::Arc;
+
+mod editor;
 
 pub struct Pan {
     params: Arc<PanParams>,
@@ -13,7 +14,7 @@ pub struct PanParams {
     /// The editor state, saved together with the parameter state so the custom scaling can be
     /// restored.
     #[persist = "editor-state"]
-    editor_state: Arc<EguiState>,
+    editor_state: Arc<ViziaState>,
 
     #[id = "pan"]
     pub pan: FloatParam,
@@ -30,7 +31,7 @@ impl Default for Pan {
 impl Default for PanParams {
     fn default() -> Self {
         Self {
-            editor_state: EguiState::from_size(300, 180),
+            editor_state: editor::default_state(),
 
             pan: FloatParam::new(
                 "Pan",
@@ -76,52 +77,7 @@ impl Plugin for Pan {
     }
 
     fn editor(&mut self, _async_executor: AsyncExecutor<Self>) -> Option<Box<dyn Editor>> {
-        let params = self.params.clone();
-        create_egui_editor(
-            self.params.editor_state.clone(),
-            (),
-            |_, _| {},
-            move |egui_ctx, setter, _state| {
-                let custom_theme = Visuals {
-                    dark_mode: true,
-                    //override_text_color: Some(Color32::WHITE),
-                    override_text_color: Some(Color32::from_rgb(0, 166, 251)),
-                    panel_fill: Color32::from_rgb(5, 25, 35),
-                    // Set other color values and visual properties as needed.
-                    // ...
-                    ..Default::default() // Use default values for the fields you don't modify.
-                };
-
-                egui_ctx.set_visuals(custom_theme);
-
-                egui::CentralPanel::default().show(egui_ctx, |ui| {
-                    // NOTE: See `plugins/diopser/src/editor.rs` for an example using the generic UI widget
-
-                    // This is a fancy widget that can get all the information it needs to properly
-                    // display and modify the parameter from the parametr itself
-                    // It's not yet fully implemented, as the text is missing.
-
-                    ui.vertical_centered(|ui| {
-                        ui.heading(egui::RichText::new("Pan").underline());
-                        ui.add(
-                            widgets::ParamSlider::for_param(&params.pan, setter)
-                                .with_width(280.0)
-                                .without_value(),
-                        );
-                        // Create a button to set params.pan to 0.0
-                        if ui
-                            .add(
-                                egui::widgets::Button::new("Set to 0.0")
-                                    .min_size(egui::Vec2::splat(40.0)),
-                            )
-                            .clicked()
-                        {
-                            setter.set_parameter(&params.pan, 0.0);
-                        }
-                    });
-                });
-            },
-        )
+        editor::create(self.params.clone(), self.params.editor_state.clone())
     }
 
     fn initialize(
