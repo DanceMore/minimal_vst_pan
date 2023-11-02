@@ -133,8 +133,8 @@ impl Plugin for Pan {
                 let pan = self.params.pan.smoothed.next();
 
                 // Calculate gains for left and right channels based on pan value
-                let left_gain = (1.0 - pan) / 2.0;
-                let right_gain = (1.0 + pan) / 2.0;
+                let left_gain = (0.5 * (1.0 - pan)).sqrt();
+                let right_gain = (0.5 * (1.0 + pan)).sqrt();
 
                 // Apply the pan by adjusting the gain for each sample
                 for (sample0, sample1) in channel_samples
